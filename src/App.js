@@ -14,6 +14,7 @@ const LISTELER = {
   "5K2A":{label:"5K+2A",renk:C.teal,sutunlar:[
     {key:"oncelikNo",label:"ÖNCELİK",tip:"badge"},
     {key:"tm1",label:"TM1",tip:"sayi",renk:true},
+    {key:"asil5kGun",label:"GEÇEN GÜN",tip:"sayi"},
     {key:"sisA",label:"SİS-A",tip:"flag",goster:"A",renk:C.purple},
     {key:"s90",label:"S90",tip:"flag",goster:"S90",renk:C.teal},
     {key:"be5son",label:"5SON",tip:"gun",gunKey:"be5sonGun"},
@@ -246,15 +247,32 @@ export default function App(){
     }
     if(payload.tip==="takas"&&payload.sembol&&payload.veri){
       const s=payload.sembol.toUpperCase();
-      const mevcut=yeni.semboller[s]||{sembol:s};
-      const gecmis=[...(mevcut.takasGecmis||[])];
       const tkVeri={...payload.veri,tarih:payload.tarih,donem:payload.donem||"1G"};
-      const idx=gecmis.findIndex(t=>t.tarih===payload.tarih);
-      if(idx>=0)gecmis[idx]=tkVeri;else gecmis.push(tkVeri);
-      gecmis.sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
-      yeni.semboller[s]={...mevcut,sembol:s,takasGecmis:gecmis.slice(-50),sonTakas:tkVeri,takasZaman:new Date().toISOString()};
-      logEkle(`✅ [${liste}] ${s} takas (${payload.tarih}) Puan:${takasP(tkVeri)}/100 Trend:${trendHesap(gecmis.slice(-50))||"—"}`);
+      // Paylaşımlı takas: sembol hangi listede varsa hepsine yaz
+      const hedefListeler=Object.keys(SK).filter(l=>{
+        const db=dblRef.current[l];
+        return db&&db.semboller&&db.semboller[s];
+      });
+      // Eğer hiçbir listede yoksa belirtilen listeye yaz
+      if(hedefListeler.length===0) hedefListeler.push(liste);
+      hedefListeler.forEach(l=>{
+        const dbL=dblRef.current[l];
+        const yeniL={...dbL,semboller:{...dbL.semboller},son:new Date().toLocaleString("tr-TR")};
+        const mevcut=yeniL.semboller[s]||{sembol:s};
+        const gecmis=[...(mevcut.takasGecmis||[])];
+        const idx=gecmis.findIndex(t=>t.tarih===payload.tarih);
+        if(idx>=0)gecmis[idx]=tkVeri;else gecmis.push(tkVeri);
+        gecmis.sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+        yeniL.semboller[s]={...mevcut,sembol:s,takasGecmis:gecmis.slice(-50),sonTakas:tkVeri,takasZaman:new Date().toISOString()};
+        // Her listeyi direkt kaydet
+        setDbler(prev=>({...prev,[l]:yeniL}));
+        dblRef.current={...dblRef.current,[l]:yeniL};
+        saveDB(l,yeniL);
+      });
+      const tp=takasP(tkVeri);
+      logEkle(`✅ ${s} takas (${payload.tarih}) → ${hedefListeler.join("+")} · Puan:${tp}/100`);
       setFlash("takas");setTimeout(()=>setFlash(null),2500);
+      return{ok:true};
     }
     if(payload.tip==="sifirla"&&payload.sembol){
       delete yeni.semboller[payload.sembol.toUpperCase()];
@@ -327,11 +345,11 @@ export default function App(){
   const sayimYap=(liste,d)=>Object.values(dbler[liste].semboller).filter(s=>s.donem===d).length;
   const ozet={"5K2A":sayimYap("5K2A",donem),"5KTSI":sayimYap("5KTSI",donem),"5KCLAU":sayimYap("5KCLAU",donem)};
 
-  const th={padding:"7px 12px",color:C.dim,fontSize:9,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0};
-  const td={padding:"8px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap"};
+  const th={padding:"7px 12px",color:"#7a9abb",fontSize:9,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0};
+  const td={padding:"8px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap",color:"#8aaabb"};
   const btn=(active,color=C.teal)=>({
     background:active?color:"transparent",
-    color:active?(color===C.teal||color===C.blue?"#060b18":"#fff"):C.muted,
+    color:active?(color===C.teal||color===C.blue?"#060b18":"#fff"):"#6a8aaa",
     border:`1px solid ${active?color:C.border}`,borderRadius:4,
     padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:active?700:400
   });
@@ -391,7 +409,7 @@ export default function App(){
             <span style={{color:C.dim,fontSize:9}}>Dönem:</span>
             {["1G","1H","1AY"].map(d=>(
               <button key={d} onClick={()=>setDonem(d)}
-                style={{background:donem===d?C.green:"transparent",color:donem===d?"#060b18":C.muted,border:`1px solid ${donem===d?C.green:C.border}`,borderRadius:3,padding:"2px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:donem===d?700:400}}>
+                style={{background:donem===d?C.green:"transparent",color:donem===d?"#060b18":"#6a8aaa",border:`1px solid ${donem===d?C.green:C.border}`,borderRadius:3,padding:"2px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:donem===d?700:400}}>
                 {d}
               </button>
             ))}
@@ -521,7 +539,7 @@ export default function App(){
       {/* LOG */}
       <div style={{background:C.bg0,borderTop:`1px solid ${C.border}`,padding:"3px 16px",maxHeight:50,overflowY:"auto",flexShrink:0}}>
         {log.map((m,i)=>(
-          <div key={i} style={{fontSize:9,color:i===0?C.muted:C.dim,padding:"1px 0",borderBottom:`1px solid ${C.border2}`}}>
+          <div key={i} style={{fontSize:9,color:i===0?"#7aaabb":"#4a6a7a",padding:"1px 0",borderBottom:`1px solid ${C.border2}`}}>
             <span style={{color:C.border,marginRight:5}}>›</span>{m}
           </div>
         ))}
