@@ -202,7 +202,7 @@ export default function App(){
   const [aktifListe,setAktifListe]=useState("5K2A");
   const [dbler,setDbler]=useState({"5K2A":loadDB("5K2A"),"5KTSI":loadDB("5KTSI"),"5KCLAU":loadDB("5KCLAU")});
   const [siralama,setSiralama]=useState("varsayilan");
-  const [donem,setDonem]=useState("TUM");
+  const [donem,setDonem]=useState("1G");
   const [panelAcik,setPanelAcik]=useState(false);
   const [ekleMenu,setEkleMenu]=useState(false);
   const [ekleModal,setEkleModal]=useState(null);
@@ -297,7 +297,7 @@ export default function App(){
 
   // Dönem filtresi
   const donemFiltreli=tumSemboller.filter(s=>{
-    if(donem==="TUM")return true;
+    
     return s.donem===donem;
   });
 
@@ -317,7 +317,8 @@ export default function App(){
     else if(siralama==="canli") liste.sort((a,b)=>(b._zaman||0)-(a._zaman||0));
   }
 
-  const ozet={"5K2A":Object.values(dbler["5K2A"].semboller).length,"5KTSI":Object.values(dbler["5KTSI"].semboller).length,"5KCLAU":Object.values(dbler["5KCLAU"].semboller).length};
+  const sayimYap=(liste,d)=>Object.values(dbler[liste].semboller).filter(s=>s.donem===d).length;
+  const ozet={"5K2A":sayimYap("5K2A",donem),"5KTSI":sayimYap("5KTSI",donem),"5KCLAU":sayimYap("5KCLAU",donem)};
 
   const th={padding:"7px 12px",color:C.dim,fontSize:9,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0};
   const td={padding:"8px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap"};
@@ -339,7 +340,7 @@ export default function App(){
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{color:C.teal,fontWeight:700,fontSize:14,letterSpacing:1}}>5K TAKİP</span>
           {Object.entries(LISTELER).map(([key,cfg])=>(
-            <button key={key} onClick={()=>{setAktifListe(key);setSiralama("varsayilan");setDonem("TUM");}}
+            <button key={key} onClick={()=>{setAktifListe(key);setSiralama("varsayilan");setDonem("1G");}}
               style={{background:aktifListe===key?cfg.renk:"transparent",
                 color:aktifListe===key?"#060b18":C.muted,
                 border:`1px solid ${aktifListe===key?cfg.renk:C.border}`,
@@ -404,7 +405,7 @@ export default function App(){
                 style={{background:C.bg1,border:`1px solid ${C.border}`,color:C.text,padding:"4px 9px",borderRadius:4,fontSize:11,fontFamily:"inherit",width:130,outline:"none"}}/>
             )}
             <span style={{color:C.dim,fontSize:9}}>Dönem:</span>
-            {["1G","1H","1AY","3AY"].map(d=><button key={d} onClick={()=>setDonemEkle(d)} style={btn(donemEkle===d)}>{d}</button>)}
+            {["1G","1H","1AY"].map(d=><button key={d} onClick={()=>setDonemEkle(d)} style={btn(donemEkle===d)}>{d}</button>)}
             <button onClick={()=>{logEkle(`Claude'a ilet: "${ekleModal==="tarama"?`tarama veri ${aktifListe} ${donemEkle}`:`takas veri ${aktifListe} ${hisse||"SEMBOL"} ${donemEkle}`}"`);setEkleModal(null);}}
               style={{background:C.teal,color:"#060b18",border:"none",borderRadius:4,padding:"4px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
               Claude'a Bildir ↗
@@ -451,7 +452,7 @@ export default function App(){
         ))}
         <div style={{width:1,height:14,background:C.border,margin:"0 4px"}}/>
         <span style={{color:C.dim,fontSize:9}}>DÖNEM</span>
-        {["1G","1H","1AY","TUM"].map(d=>(
+        {["1G","1H","1AY"].map(d=>(
           <button key={d} onClick={()=>setDonem(d)} style={btn(donem===d)}>{d}</button>
         ))}
         <span style={{marginLeft:"auto",color:C.dim,fontSize:9}}>
