@@ -270,6 +270,13 @@ export default function App(){
     try{const p=JSON.parse(veriInput.trim());receiveData(p);setVeriInput("");setVeriBox(false);}
     catch(e){logEkle(`❌ JSON hatası: ${e.message}`);}
   }
+  function temizleData(){
+    if(!window.confirm(`[${LISTELER[aktifListe].label}] listesindeki TÜM veri silinecek. Emin misiniz?`))return;
+    const bos={semboller:{},son:null};
+    kaydet(aktifListe,bos);
+    logEkle(`🗑 [${aktifListe}] liste temizlendi.`);
+  }
+
   function exportData(){
     const blob=new Blob([JSON.stringify(dbler,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);
@@ -353,6 +360,7 @@ export default function App(){
         </div>
         <div style={{display:"flex",gap:5,alignItems:"center"}} ref={ref}>
           <button onClick={exportData} style={{...btn(false),fontSize:9,padding:"3px 8px"}}>📦 Yedek</button>
+          <button onClick={temizleData} style={{...btn(false,C.red),fontSize:9,padding:"3px 8px",color:C.red}}>🗑 Temizle</button>
           <label style={{...btn(false),fontSize:9,padding:"3px 8px",cursor:"pointer"}}>
             📥 Yükle<input type="file" accept=".json" onChange={importData} style={{display:"none"}}/>
           </label>
