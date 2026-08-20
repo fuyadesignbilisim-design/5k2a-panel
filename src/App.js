@@ -131,7 +131,7 @@ function Sparkline({puanlar,w=52,h=18}){
 function Hucre({tip,val,sutun,s}){
   const dim=<span style={{color:C.dim}}>—</span>;
   if(tip==="badge"){const cfg=PCFG[val];return cfg?<span style={{background:cfg.bg,color:cfg.tc||"#fff",borderRadius:3,padding:"2px 8px",fontSize:10,fontWeight:700}}>{cfg.l}</span>:dim;}
-  if(tip==="sayi") return val!==undefined&&val!==null&&val!==""&&val!=="0"?<span style={{color:C.text}}>{val}</span>:dim;
+  if(tip==="sayi") return val!==undefined&&val!==null&&val!==""&&val!=="0"&&val!==0?<span style={{color:"#c8dde8"}}>{val}</span>:dim;
   if(tip==="pct"){const n=parseFloat(val);if(isNaN(n))return dim;const renk=n>0?C.teal:n<0?C.red:C.muted;return <span style={{color:renk}}>{n>0?"+":""}{n.toFixed(2)}%</span>;}
   if(tip==="flag10") return val==1?<span style={{color:sutun.renk||C.teal,fontWeight:700}}>✓</span>:dim;
   if(tip==="flag") return val==1?<span style={{color:sutun.renk||C.teal,fontWeight:700}}>{sutun.goster}</span>:dim;
@@ -163,7 +163,8 @@ function satirHazirla(s,liste){
 
   if(liste==="5K2A"){
     const tp=teknikP(tek);
-    return {oncelikNo:tek.oncelikNo||0,tm1:tek.tm1,sisA:tek.sisA,s90:tek.s90,
+    return {oncelikNo:tek.oncelikNo||0,tm1:tek.tm1,asil5kGun:tek.asil5kGun||"",
+      sisA:tek.sisA,s90:tek.s90,
       be5son:tek.be5son,be5sonGun:tek.be5sonGun,teknikP:tp,takasP:tkp,
       birlesik:birlesikP(tp,tkp),takTarih:s.sonTakas?.tarih||null,trend:tr_,
       _pp:pp,_tFark:tFark,_zaman:zaman,_oncelik:tek.oncelikNo||99};
@@ -345,11 +346,11 @@ export default function App(){
   const sayimYap=(liste,d)=>Object.values(dbler[liste].semboller).filter(s=>s.donem===d).length;
   const ozet={"5K2A":sayimYap("5K2A",donem),"5KTSI":sayimYap("5KTSI",donem),"5KCLAU":sayimYap("5KCLAU",donem)};
 
-  const th={padding:"7px 12px",color:"#7a9abb",fontSize:9,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0};
-  const td={padding:"8px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap",color:"#8aaabb"};
+  const th={padding:"8px 12px",color:"#a0bdd0",fontSize:10,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0};
+  const td={padding:"9px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap",color:"#b0c8d8"};
   const btn=(active,color=C.teal)=>({
     background:active?color:"transparent",
-    color:active?(color===C.teal||color===C.blue?"#060b18":"#fff"):"#6a8aaa",
+    color:active?(color===C.teal||color===C.blue?"#060b18":"#fff"):"#90b0c8",
     border:`1px solid ${active?color:C.border}`,borderRadius:4,
     padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:active?700:400
   });
@@ -358,7 +359,7 @@ export default function App(){
   const sutunlar=trendGorunum?TREND_SUTUNLAR:listeKfg.sutunlar;
 
   return(
-    <div style={{background:C.bg1,minHeight:"100vh",fontFamily:"'Courier New',monospace",fontSize:12,color:C.text,display:"flex",flexDirection:"column",border:`2px solid ${flashBorder}`,transition:"border-color 0.4s"}}>
+    <div style={{background:C.bg1,minHeight:"100vh",fontFamily:"'Courier New',monospace",fontSize:13,color:C.text,display:"flex",flexDirection:"column",border:`2px solid ${flashBorder}`,transition:"border-color 0.4s"}}>
 
       {/* HEADER */}
       <div style={{background:C.bg2,borderBottom:`1px solid ${C.border}`,padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
@@ -374,7 +375,7 @@ export default function App(){
               {cfg.label}<span style={{marginLeft:4,fontSize:9,opacity:0.8}}>{ozet[key]}</span>
             </button>
           ))}
-          <span style={{color:C.dim,fontSize:9,marginLeft:4}}>{db.son||"—"}</span>
+          <span style={{color:"#7a9aaa",fontSize:9,marginLeft:4}}>{db.son||"—"}</span>
         </div>
         <div style={{display:"flex",gap:5,alignItems:"center"}} ref={ref}>
           <button onClick={exportData} style={{...btn(false),fontSize:9,padding:"3px 8px"}}>📦 Yedek</button>
@@ -488,7 +489,7 @@ export default function App(){
         {["1G","1H","1AY"].map(d=>(
           <button key={d} onClick={()=>setDonem(d)} style={btn(donem===d)}>{d}</button>
         ))}
-        <span style={{marginLeft:"auto",color:C.dim,fontSize:9}}>
+        <span style={{marginLeft:"auto",color:"#90b0c8",fontSize:9}}>
           {liste.length} kayıt · {listeKfg.label}
           {trendGorunum&&<span style={{color:C.yellow,marginLeft:6}}>↕ Takas trend değişimi</span>}
           {siralama==="canli"&&<span style={{color:C.orange,marginLeft:6}}>● En son güncellenen üstte</span>}
@@ -514,9 +515,9 @@ export default function App(){
               const canliZaman=s._zaman?new Date(s._zaman).toLocaleString("tr-TR"):"—";
               return(
                 <tr key={s.sembol||i} style={{background:i%2===0?C.bg1:C.bg0}}>
-                  <td style={{...td,color:C.bright,fontWeight:700,fontSize:13}}>
+                  <td style={{...td,color:"#e8f0ff",fontWeight:700,fontSize:14}}>
                     {s.sembol||"?"}
-                    {siralama==="canli"&&<div style={{color:C.dim,fontSize:8}}>{canliZaman}</div>}
+                    {siralama==="canli"&&<div style={{color:"#6a8a9a",fontSize:9}}>{canliZaman}</div>}
                   </td>
                   {trendGorunum&&<td style={{...td,color:C.dim,fontSize:10}}>{s.donem||"—"}</td>}
                   {sutunlar.map(sut=>{
@@ -539,7 +540,7 @@ export default function App(){
       {/* LOG */}
       <div style={{background:C.bg0,borderTop:`1px solid ${C.border}`,padding:"3px 16px",maxHeight:50,overflowY:"auto",flexShrink:0}}>
         {log.map((m,i)=>(
-          <div key={i} style={{fontSize:9,color:i===0?"#7aaabb":"#4a6a7a",padding:"1px 0",borderBottom:`1px solid ${C.border2}`}}>
+          <div key={i} style={{fontSize:9,color:i===0?"#90b8c8":"#607888",padding:"1px 0",borderBottom:`1px solid ${C.border2}`}}>
             <span style={{color:C.border,marginRight:5}}>›</span>{m}
           </div>
         ))}
