@@ -238,7 +238,7 @@ export default function App(){
       for(const item of payload.veri){
         const s=item.sembol.toUpperCase();
         const mevcut=yeni.semboller[s]||{sembol:s};
-        yeni.semboller[s]={...mevcut,sembol:s,teknik:item.teknik,donem:item.donem||"1G",teknikZaman:new Date().toISOString()};
+        yeni.semboller[s]={...mevcut,sembol:s,teknik:item.teknik,donem:payload.donem||item.donem||donem,teknikZaman:new Date().toISOString()};
         if(current.semboller[s])guncellendi++;else eklenen++;
       }
       logEkle(`✅ [${liste}] ${eklenen} yeni · ${guncellendi} güncellendi · Dönem: ${payload.donem||"1G"}`);
@@ -386,9 +386,16 @@ export default function App(){
       {/* VERİ UYGULA */}
       {veriBox&&(
         <div style={{background:C.bg0,borderBottom:`2px solid ${C.green}`,padding:"10px 16px",flexShrink:0}}>
-          <div style={{color:C.green,fontSize:10,fontWeight:700,marginBottom:5}}>
-            VERİ UYGULA — aktif liste: [{listeKfg.label}]
-            <span style={{color:C.dim,fontSize:9,marginLeft:8}}>Farklı liste için JSON'a "liste":"5KTSI" ekleyin</span>
+          <div style={{color:C.green,fontSize:10,fontWeight:700,marginBottom:5,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+            <span>VERİ UYGULA — [{listeKfg.label}]</span>
+            <span style={{color:C.dim,fontSize:9}}>Dönem:</span>
+            {["1G","1H","1AY"].map(d=>(
+              <button key={d} onClick={()=>setDonem(d)}
+                style={{background:donem===d?C.green:"transparent",color:donem===d?"#060b18":C.muted,border:`1px solid ${donem===d?C.green:C.border}`,borderRadius:3,padding:"2px 8px",fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:donem===d?700:400}}>
+                {d}
+              </button>
+            ))}
+            <span style={{color:C.dim,fontSize:9}}>— Seçili dönem JSON'a otomatik uygulanır</span>
           </div>
           <div style={{display:"flex",gap:8}}>
             <textarea value={veriInput} onChange={e=>setVeriInput(e.target.value)}
