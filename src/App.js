@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const SK = "5k2a_v3";
+const SK = { "5K2A":"5k2a_v3","5KTSI":"5ktsi_v1","5KCLAU":"5kclau_v1" };
 const C = {
   bg0:"#060b18",bg1:"#0a0f1e",bg2:"#0d1428",
   border:"#1e2d4e",border2:"#0f1930",
@@ -8,25 +8,74 @@ const C = {
   green:"#00c853",purple:"#9b59b6",yellow:"#f1c40f",red:"#e74c3c",
   dim:"#2a4a6a",muted:"#3a6080",text:"#c8d0e0",bright:"#e0e8ff",
 };
-const PCFG = {
-  1:{bg:C.orange,l:"P1"},2:{bg:C.green,l:"P2"},
-  3:{bg:C.blue,l:"P3"},4:{bg:C.purple,l:"P4"},
-  5:{bg:C.yellow,l:"P5",tc:"#000"},
+const PCFG={1:{bg:C.orange,l:"P1"},2:{bg:C.green,l:"P2"},3:{bg:C.blue,l:"P3"},4:{bg:C.purple,l:"P4"},5:{bg:C.yellow,l:"P5",tc:"#000"}};
+
+const LISTELER = {
+  "5K2A":{label:"5K+2A",renk:C.teal,sutunlar:[
+    {key:"oncelikNo",label:"ÖNCELİK",tip:"badge"},
+    {key:"tm1",label:"TM1",tip:"sayi",renk:true},
+    {key:"sisA",label:"SİS-A",tip:"flag",goster:"A",renk:C.purple},
+    {key:"s90",label:"S90",tip:"flag",goster:"S90",renk:C.teal},
+    {key:"be5son",label:"5SON",tip:"gun",gunKey:"be5sonGun"},
+    {key:"teknikP",label:"TEKNİK P.",tip:"puan"},
+    {key:"takasP",label:"TAKAS P.",tip:"puan"},
+    {key:"birlesik",label:"BİRLEŞİK",tip:"puan"},
+    {key:"takTarih",label:"TAKAS TARİHİ",tip:"tarih"},
+    {key:"trend",label:"TREND",tip:"trend"},
+  ]},
+  "5KTSI":{label:"5K TSI",renk:C.blue,sutunlar:[
+    {key:"tumTsi",label:"TUM+TSI",tip:"flag10",renk:C.teal},
+    {key:"tumTsiGun",label:"G.GÜN",tip:"sayi"},
+    {key:"barFarkPct",label:"BAR FARK%",tip:"pct"},
+    {key:"filtreSar",label:"FİLTRE+SAR",tip:"flag10",renk:C.orange},
+    {key:"sinyalFiyat",label:"SİNYAL FİY.",tip:"sayi"},
+    {key:"tumOnay",label:"TUM ONAY",tip:"flag10",renk:C.green},
+    {key:"sliSar12",label:"5Lİ SAR 1-2",tip:"sayi"},
+    {key:"tsiHafta",label:"TSI HAFTA",tip:"flag10",renk:C.yellow},
+    {key:"sliSar10",label:"5Lİ SAR 1-0",tip:"flag10",renk:C.teal},
+    {key:"sliSarGun",label:"SAR G.GÜN",tip:"sayi"},
+    {key:"sliSarFark",label:"SAR FARK%",tip:"pct"},
+    {key:"ilkGunMax",label:"İLK GÜN MAX",tip:"flag10",renk:C.orange},
+    {key:"ikliAylik",label:"2Lİ AYLIK",tip:"sayi"},
+    {key:"ikliAylik10",label:"2Lİ AYLIK 1-0",tip:"flag10",renk:C.purple},
+    {key:"ikliAylikGun",label:"2Lİ AY.GÜN",tip:"sayi"},
+    {key:"takasP",label:"TAKAS P.",tip:"puan"},
+    {key:"takTarih",label:"TAKAS TARİHİ",tip:"tarih"},
+    {key:"trend",label:"TREND",tip:"trend"},
+  ]},
+  "5KCLAU":{label:"5K CLAUDE",renk:C.purple,sutunlar:[
+    {key:"sinyalAnlik",label:"SİNYAL 1-0",tip:"flag10",renk:C.teal},
+    {key:"sinyalSkor",label:"SİNYAL SKOR",tip:"sayi"},
+    {key:"sinyalGun",label:"GEÇEN GÜN",tip:"sayi"},
+    {key:"var5k",label:"5K VAR",tip:"flag10",renk:C.orange},
+    {key:"kutuSkor",label:"KUTU SKOR",tip:"sayi"},
+    {key:"canliSkor",label:"CANLI SKOR",tip:"sayi"},
+    {key:"skorFarkPct",label:"SKOR FARK%",tip:"pct"},
+    {key:"fiyatFarkPct",label:"FİYAT FARK%",tip:"pct"},
+    {key:"skorSapma",label:"SKOR SAPMA%",tip:"pct"},
+    {key:"g30Fiyat",label:"30G %Fiy.",tip:"pct"},
+    {key:"g60Fiyat",label:"60G %Fiy.",tip:"pct"},
+    {key:"tier1",label:"TIER1",tip:"flag10",renk:C.orange},
+    {key:"tier1Gun",label:"T1 GÜN",tip:"sayi"},
+    {key:"tier2",label:"TIER2",tip:"flag10",renk:C.yellow},
+    {key:"tier2Gun",label:"T2 GÜN",tip:"sayi"},
+    {key:"tier3",label:"TIER3",tip:"flag10",renk:C.green},
+    {key:"tier3Gun",label:"T3 GÜN",tip:"sayi"},
+    {key:"filtre8k",label:"8K FİLTRE",tip:"sayi"},
+    {key:"takasP",label:"TAKAS P.",tip:"puan"},
+    {key:"takTarih",label:"TAKAS TARİHİ",tip:"tarih"},
+    {key:"trend",label:"TREND",tip:"trend"},
+  ]},
 };
 
-function loadDB() {
-  try { const r = localStorage.getItem(SK); return r ? JSON.parse(r) : { semboller:{}, son:null }; }
-  catch { return { semboller:{}, son:null }; }
-}
-function saveDB(d) {
-  try { localStorage.setItem(SK, JSON.stringify(d)); } catch(e) { console.error(e); }
-}
+function loadDB(l){try{const r=localStorage.getItem(SK[l]);return r?JSON.parse(r):{semboller:{},son:null};}catch{return{semboller:{},son:null};}}
+function saveDB(l,d){try{localStorage.setItem(SK[l],JSON.stringify(d));}catch(e){console.error(e);}}
 
-function takasP(t) {
-  if (!t) return null; let p = 0;
-  const nt = parseFloat(t.netToplam||0);
+function takasP(t){
+  if(!t)return null;let p=0;
+  const nt=parseFloat(t.netToplam||0);
   if(nt>20)p+=25;else if(nt>10)p+=18;else if(nt>0)p+=10;else if(nt>-5)p+=3;
-  const yn = parseFloat(t.yabanciNet||0);
+  const yn=parseFloat(t.yabanciNet||0);
   if(yn>500000)p+=25;else if(yn>100000)p+=20;else if(yn>0)p+=12;else if(yn>-100000)p+=4;
   const ao=parseFloat(t.alimOrt||0),so=parseFloat(t.satimOrt||0);
   if(ao>0&&so>0){if(ao>so)p+=20;else if(ao===so)p+=10;}
@@ -34,460 +83,433 @@ function takasP(t) {
   if(ia>0&&is_>0){if(ia>is_)p+=15;else if(ia>is_-5)p+=7;}
   const ns=parseFloat(t.netS||0);
   if(ns>0)p+=15;else if(ns>-50000)p+=5;
-  return Math.min(100, Math.round(p));
+  return Math.min(100,Math.round(p));
 }
-function teknikP(s) {
-  if(!s)return null; let p=0;
+function teknikP(s){
+  if(!s)return null;let p=0;
   p+=Math.min(30,Math.round((parseInt(s.tm1||0)/7)*30));
   if(s.max==1)p+=7;if(s.s90==1)p+=7;if(s.s30==1)p+=6;
   if(s.sisA==1)p+=10;if(s.sisB==1)p+=8;
   if(s.be5son==1)p+=8;if(s.be5sonSar==1)p+=12;
-  return Math.min(100, Math.round(p));
+  return Math.min(100,Math.round(p));
 }
-function birlesikP(tp,tkp) {
+function birlesikP(tp,tkp){
   if(tp===null&&tkp===null)return null;
   if(tp===null)return tkp;if(tkp===null)return tp;
   return Math.round(tp*0.55+tkp*0.45);
 }
-function trendHesap(g) {
+function trendHesap(g){
   if(!g||g.length<2)return null;
   const sorted=[...g].sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
   const pp=sorted.map(t=>takasP(t)).filter(x=>x!==null);
   if(pp.length<2)return null;
   const d=pp[pp.length-1]-pp[pp.length-2];
-  if(d>10)return"↑↑";if(d>3)return"↑";
-  if(d<-10)return"↓↓";if(d<-3)return"↓";return"→";
+  if(d>10)return"↑↑";if(d>3)return"↑";if(d<-10)return"↓↓";if(d<-3)return"↓";return"→";
 }
-function puanRenk(v) {
+function trendPuanFark(g){
+  if(!g||g.length<2)return null;
+  const sorted=[...g].sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+  const pp=sorted.map(t=>takasP(t)).filter(x=>x!==null);
+  if(pp.length<2)return null;
+  return pp[pp.length-1]-pp[pp.length-2];
+}
+function puanRenk(v){
   if(v===null||v===undefined)return C.dim;
   return v>=75?C.teal:v>=55?C.yellow:v>=35?C.orange:C.red;
 }
 
-function Sparkline({ puanlar, w=60, h=20 }) {
-  if(!puanlar||puanlar.length<2) return <span style={{color:C.dim}}>···</span>;
+function Sparkline({puanlar,w=52,h=18}){
+  if(!puanlar||puanlar.length<2)return null;
   const mn=Math.min(...puanlar),mx=Math.max(...puanlar),rng=mx-mn||1;
   const pts=puanlar.map((p,i)=>`${(i/(puanlar.length-1))*w},${h-((p-mn)/rng)*h}`).join(" ");
   const rc=puanRenk(puanlar[puanlar.length-1]);
   const lp=pts.split(" ").pop().split(",");
-  return (
-    <svg width={w} height={h} style={{verticalAlign:"middle"}}>
-      <polyline points={pts} fill="none" stroke={rc} strokeWidth={1.5}/>
-      <circle cx={lp[0]} cy={lp[1]} r={2.5} fill={rc}/>
-    </svg>
-  );
+  return <svg width={w} height={h} style={{verticalAlign:"middle"}}><polyline points={pts} fill="none" stroke={rc} strokeWidth={1.5}/><circle cx={lp[0]} cy={lp[1]} r={2} fill={rc}/></svg>;
 }
 
-const PANEL_K = [
-  {k:"tablo 1g",ac:"Günlük tablo",r:C.teal},
-  {k:"tablo 1h",ac:"Haftalık tablo",r:C.teal},
-  {k:"tablo 1ay",ac:"Aylık tablo",r:C.teal},
-  {k:"tablo 3ay",ac:"3 Aylık tablo",r:C.teal},
-  {k:"takas trend",ac:"Tüm takas trendleri",r:C.yellow},
-  {k:"p1 takas",ac:"P1 + Takas >60",r:C.orange},
-  {k:"en güçlü",ac:"Teknik+Takas top 10",r:C.orange},
-  {k:"hafta özet",ac:"Haftalık takas özeti",r:C.blue},
-  {k:"özet",ac:"Sistem metrikleri",r:C.muted},
-  {k:"sıfırla SEMBOL",ac:"Sembol verisini sil",r:C.red},
+function Hucre({tip,val,sutun,s}){
+  const dim=<span style={{color:C.dim}}>—</span>;
+  if(tip==="badge"){const cfg=PCFG[val];return cfg?<span style={{background:cfg.bg,color:cfg.tc||"#fff",borderRadius:3,padding:"2px 8px",fontSize:10,fontWeight:700}}>{cfg.l}</span>:dim;}
+  if(tip==="sayi") return val!==undefined&&val!==null&&val!==""&&val!=="0"?<span style={{color:C.text}}>{val}</span>:dim;
+  if(tip==="pct"){const n=parseFloat(val);if(isNaN(n))return dim;const renk=n>0?C.teal:n<0?C.red:C.muted;return <span style={{color:renk}}>{n>0?"+":""}{n.toFixed(2)}%</span>;}
+  if(tip==="flag10") return val==1?<span style={{color:sutun.renk||C.teal,fontWeight:700}}>✓</span>:dim;
+  if(tip==="flag") return val==1?<span style={{color:sutun.renk||C.teal,fontWeight:700}}>{sutun.goster}</span>:dim;
+  if(tip==="gun"){
+    if(val==1){const g=parseInt(s?.[sutun.gunKey]||0);return <span style={{color:C.blue}}>{g>0?`${g}g`:"✓"}</span>;}
+    return dim;
+  }
+  if(tip==="puan"){if(val===null||val===undefined)return dim;return <span style={{color:puanRenk(val),fontWeight:700}}>{val}<span style={{color:C.dim,fontSize:9}}>/100</span></span>;}
+  if(tip==="tarih") return val?<span style={{color:C.muted,fontSize:10}}>{val}</span>:dim;
+  if(tip==="trend"){
+    const trc={"↑↑":C.teal,"↑":C.blue,"→":C.muted,"↓":C.orange,"↓↓":C.red}[val]||C.dim;
+    const pp=s?._pp||[];
+    return <div style={{display:"flex",alignItems:"center",gap:5}}>
+      {pp.length>=2&&<Sparkline puanlar={pp}/>}
+      {val?<span style={{color:trc,fontWeight:700,fontSize:13}}>{val}</span>:dim}
+    </div>;
+  }
+  return dim;
+}
+
+function satirHazirla(s,liste){
+  const tek=s.teknik||{};
+  const tkp=takasP(s.sonTakas);
+  const gecmis=s.takasGecmis||[];
+  const pp=gecmis.map(t=>takasP(t)).filter(x=>x!==null);
+  const tr_=trendHesap(gecmis);
+  const tFark=trendPuanFark(gecmis);
+  const zaman=s.teknikZaman?new Date(s.teknikZaman).getTime():0;
+
+  if(liste==="5K2A"){
+    const tp=teknikP(tek);
+    return {oncelikNo:tek.oncelikNo||0,tm1:tek.tm1,sisA:tek.sisA,s90:tek.s90,
+      be5son:tek.be5son,be5sonGun:tek.be5sonGun,teknikP:tp,takasP:tkp,
+      birlesik:birlesikP(tp,tkp),takTarih:s.sonTakas?.tarih||null,trend:tr_,
+      _pp:pp,_tFark:tFark,_zaman:zaman,_oncelik:tek.oncelikNo||99};
+  }
+  if(liste==="5KTSI"){
+    return {tumTsi:tek.tumTsi,tumTsiGun:tek.tumTsiGun,barFarkPct:tek.barFarkPct,
+      filtreSar:tek.filtreSar,sinyalFiyat:tek.sinyalFiyat,tumOnay:tek.tumOnay,
+      sliSar12:tek.sliSar12,tsiHafta:tek.tsiHafta,sliSar10:tek.sliSar10,
+      sliSarGun:tek.sliSarGun,sliSarFark:tek.sliSarFark,ilkGunMax:tek.ilkGunMax,
+      ikliAylik:tek.ikliAylik,ikliAylik10:tek.ikliAylik10,ikliAylikGun:tek.ikliAylikGun,
+      takasP:tkp,takTarih:s.sonTakas?.tarih||null,trend:tr_,
+      _pp:pp,_tFark:tFark,_zaman:zaman,_oncelik:parseInt(tek.tumTsiGun||999)};
+  }
+  if(liste==="5KCLAU"){
+    return {sinyalAnlik:tek.sinyalAnlik,sinyalSkor:tek.sinyalSkor,sinyalGun:tek.sinyalGun,
+      var5k:tek.var5k,kutuSkor:tek.kutuSkor,canliSkor:tek.canliSkor,
+      skorFarkPct:tek.skorFarkPct,fiyatFarkPct:tek.fiyatFarkPct,skorSapma:tek.skorSapma,
+      g30Fiyat:tek.g30Fiyat,g60Fiyat:tek.g60Fiyat,tier1:tek.tier1,tier1Gun:tek.tier1Gun,
+      tier2:tek.tier2,tier2Gun:tek.tier2Gun,tier3:tek.tier3,tier3Gun:tek.tier3Gun,
+      filtre8k:tek.filtre8k,takasP:tkp,takTarih:s.sonTakas?.tarih||null,trend:tr_,
+      _pp:pp,_tFark:tFark,_zaman:zaman,_oncelik:parseFloat(tek.sinyalSkor||0)*-1};
+  }
+  return {};
+}
+
+// TREND GÖRÜNÜMÜ — özel sütunlar
+const TREND_SUTUNLAR=[
+  {key:"takasP",label:"TAKAS P.",tip:"puan"},
+  {key:"trend",label:"TREND",tip:"trend"},
+  {key:"trendFark",label:"PUAN FARKI",tip:"trendFark"},
+  {key:"takTarih",label:"SON TARİH",tip:"tarih"},
+  {key:"teknikP",label:"TEKNİK P.",tip:"puan"},
+  {key:"birlesik",label:"BİRLEŞİK",tip:"puan"},
 ];
 
-export default function App() {
-  const [db, setDb] = useState(() => loadDB());
-  const [gorunum, setGorunum] = useState("tablo");
-  const [donem, setDonem] = useState("TUM");
-  const [filtre, setFiltre] = useState(0);
-  const [siralama, setSiralama] = useState("oncelik");
-  const [panelAcik, setPanelAcik] = useState(false);
-  const [ekleMenu, setEkleMenu] = useState(false);
-  const [ekleModal, setEkleModal] = useState(null);
-  const [hisse, setHisse] = useState("");
-  const [donemEkle, setDonemEkle] = useState("1G");
-  const [veriInput, setVeriInput] = useState("");
-  const [veriBox, setVeriBox] = useState(false);
-  const [log, setLog] = useState(["Panel hazır — Veri Uygula kutusuna receiveData kodunu yapıştırın."]);
-  const [flash, setFlash] = useState(null);
-  const [kopyalandi, setKopyalandi] = useState(false);
-  const ref = useRef(null);
-  const dbRef = useRef(db);
-  dbRef.current = db;
+export default function App(){
+  const [aktifListe,setAktifListe]=useState("5K2A");
+  const [dbler,setDbler]=useState({"5K2A":loadDB("5K2A"),"5KTSI":loadDB("5KTSI"),"5KCLAU":loadDB("5KCLAU")});
+  const [siralama,setSiralama]=useState("varsayilan");
+  const [donem,setDonem]=useState("TUM");
+  const [panelAcik,setPanelAcik]=useState(false);
+  const [ekleMenu,setEkleMenu]=useState(false);
+  const [ekleModal,setEkleModal]=useState(null);
+  const [hisse,setHisse]=useState("");
+  const [donemEkle,setDonemEkle]=useState("1G");
+  const [veriBox,setVeriBox]=useState(false);
+  const [veriInput,setVeriInput]=useState("");
+  const [log,setLog]=useState(["Panel hazır — 3 liste aktif."]);
+  const [flash,setFlash]=useState(null);
+  const ref=useRef(null);
+  const dblRef=useRef(dbler);
+  dblRef.current=dbler;
 
-  const logEkle = useCallback((m) => {
-    setLog(p => [`[${new Date().toLocaleTimeString("tr-TR")}] ${m}`, ...p.slice(0,50)]);
-  }, []);
+  const logEkle=useCallback((m)=>setLog(p=>[`[${new Date().toLocaleTimeString("tr-TR")}] ${m}`,...p.slice(0,50)]),[]);
+  const kaydet=useCallback((liste,yeni)=>{
+    setDbler(prev=>({...prev,[liste]:yeni}));
+    dblRef.current={...dblRef.current,[liste]:yeni};
+    saveDB(liste,yeni);
+  },[]);
 
-  const kaydet = useCallback((yeni) => {
-    setDb(yeni); dbRef.current = yeni; saveDB(yeni);
-  }, []);
+  useEffect(()=>{
+    const h=(e)=>{if(ref.current&&!ref.current.contains(e.target))setEkleMenu(false);};
+    document.addEventListener("mousedown",h);
+    return()=>document.removeEventListener("mousedown",h);
+  },[]);
 
-  useEffect(() => {
-    const h = (e) => { if(ref.current&&!ref.current.contains(e.target)) setEkleMenu(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, []);
-
-  // ── receiveData: Claude'dan gelen veriyi işler ──────────────────
-  const receiveData = useCallback((payload) => {
-    const current = dbRef.current;
-    const yeni = { ...current, semboller:{...current.semboller}, son:new Date().toLocaleString("tr-TR") };
-    let eklenen=0, guncellenen=0;
-
-    if (payload.tip === "tarama" && Array.isArray(payload.veri)) {
-      for (const item of payload.veri) {
-        const s = item.sembol.toUpperCase();
-        const mevcut = yeni.semboller[s] || { sembol:s };
-        yeni.semboller[s] = { ...mevcut, sembol:s, teknik:item.teknik, donem:item.donem||"1G", teknikZaman:new Date().toISOString() };
-        if (current.semboller[s]) guncellenen++; else eklenen++;
+  const receiveData=useCallback((payload)=>{
+    const liste=payload.liste||aktifListe;
+    const current=dblRef.current[liste];
+    const yeni={...current,semboller:{...current.semboller},son:new Date().toLocaleString("tr-TR")};
+    let eklenen=0,guncellendi=0;
+    if(payload.tip==="tarama"&&Array.isArray(payload.veri)){
+      for(const item of payload.veri){
+        const s=item.sembol.toUpperCase();
+        const mevcut=yeni.semboller[s]||{sembol:s};
+        yeni.semboller[s]={...mevcut,sembol:s,teknik:item.teknik,donem:item.donem||"1G",teknikZaman:new Date().toISOString()};
+        if(current.semboller[s])guncellendi++;else eklenen++;
       }
-      logEkle(`✅ Tarama işlendi — ${eklenen} yeni, ${guncellenen} güncellendi (${payload.donem||"1G"})`);
-      setFlash("tarama"); setTimeout(()=>setFlash(null), 2500);
+      logEkle(`✅ [${liste}] ${eklenen} yeni · ${guncellendi} güncellendi · Dönem: ${payload.donem||"1G"}`);
+      setFlash("tarama");setTimeout(()=>setFlash(null),2500);
     }
-
-    if (payload.tip === "takas" && payload.sembol && payload.veri) {
-      const s = payload.sembol.toUpperCase();
-      const mevcut = yeni.semboller[s] || { sembol:s };
-      const gecmis = [...(mevcut.takasGecmis||[])];
-      const tkVeri = { ...payload.veri, tarih:payload.tarih, donem:payload.donem||"1G" };
-      const idx = gecmis.findIndex(t=>t.tarih===payload.tarih);
-      if(idx>=0) gecmis[idx]=tkVeri; else gecmis.push(tkVeri);
+    if(payload.tip==="takas"&&payload.sembol&&payload.veri){
+      const s=payload.sembol.toUpperCase();
+      const mevcut=yeni.semboller[s]||{sembol:s};
+      const gecmis=[...(mevcut.takasGecmis||[])];
+      const tkVeri={...payload.veri,tarih:payload.tarih,donem:payload.donem||"1G"};
+      const idx=gecmis.findIndex(t=>t.tarih===payload.tarih);
+      if(idx>=0)gecmis[idx]=tkVeri;else gecmis.push(tkVeri);
       gecmis.sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
-      const sonGecmis = gecmis.slice(-50);
-      yeni.semboller[s] = { ...mevcut, sembol:s, takasGecmis:sonGecmis, sonTakas:tkVeri, takasZaman:new Date().toISOString() };
-      const tp = takasP(tkVeri);
-      const tr_ = trendHesap(sonGecmis);
-      logEkle(`✅ ${s} takas eklendi (${payload.tarih}) — Puan: ${tp}/100  Trend: ${tr_||"—"}`);
-      setFlash("takas"); setTimeout(()=>setFlash(null), 2500);
+      yeni.semboller[s]={...mevcut,sembol:s,takasGecmis:gecmis.slice(-50),sonTakas:tkVeri,takasZaman:new Date().toISOString()};
+      logEkle(`✅ [${liste}] ${s} takas (${payload.tarih}) Puan:${takasP(tkVeri)}/100 Trend:${trendHesap(gecmis.slice(-50))||"—"}`);
+      setFlash("takas");setTimeout(()=>setFlash(null),2500);
     }
-
-    if (payload.tip === "sifirla" && payload.sembol) {
-      const s = payload.sembol.toUpperCase();
-      delete yeni.semboller[s];
-      logEkle(`🗑 ${s} silindi.`);
+    if(payload.tip==="sifirla"&&payload.sembol){
+      delete yeni.semboller[payload.sembol.toUpperCase()];
+      logEkle(`🗑 [${liste}] ${payload.sembol.toUpperCase()} silindi.`);
     }
+    kaydet(liste,yeni);
+    return{ok:true};
+  },[kaydet,logEkle,aktifListe]);
 
-    kaydet(yeni);
-    return { ok:true, toplam:Object.keys(yeni.semboller).length };
-  }, [kaydet, logEkle]);
+  useEffect(()=>{window.receiveData=receiveData;return()=>{delete window.receiveData;};},[receiveData]);
 
-  // Global erişim — Claude konsoldan da çağırabilir
-  useEffect(() => {
-    window.receiveData = receiveData;
-    return () => { delete window.receiveData; };
-  }, [receiveData]);
-
-  // Veri kutusu — JSON yapıştır, çalıştır
-  function veriUygula() {
-    try {
-      const payload = JSON.parse(veriInput.trim());
-      receiveData(payload);
-      setVeriInput("");
-      setVeriBox(false);
-    } catch(e) {
-      logEkle(`❌ JSON hatası: ${e.message}`);
-    }
+  function veriUygula(){
+    try{const p=JSON.parse(veriInput.trim());receiveData(p);setVeriInput("");setVeriBox(false);}
+    catch(e){logEkle(`❌ JSON hatası: ${e.message}`);}
   }
-
-  // Export JSON
-  function exportData() {
-    const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href=url; a.download="5k2a_yedek.json"; a.click();
-    URL.revokeObjectURL(url);
-    logEkle("📦 Yedek indirildi.");
+  function exportData(){
+    const blob=new Blob([JSON.stringify(dbler,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download="5k_panel_yedek.json";a.click();
+    URL.revokeObjectURL(url);logEkle("📦 Yedeklendi.");
   }
-
-  // Import JSON
-  function importData(e) {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const parsed = JSON.parse(ev.target.result);
-        kaydet(parsed);
-        logEkle(`📥 İçe aktarıldı — ${Object.keys(parsed.semboller||{}).length} sembol`);
-      } catch { logEkle("❌ Geçersiz dosya."); }
+  function importData(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        if(parsed["5K2A"]||parsed["5KTSI"]||parsed["5KCLAU"]){
+          Object.entries(parsed).forEach(([l,v])=>{if(SK[l]){saveDB(l,v);setDbler(p=>({...p,[l]:v}));}});
+          logEkle("📥 Tüm listeler içe aktarıldı.");
+        }else{kaydet(aktifListe,parsed);logEkle(`📥 [${aktifListe}] içe aktarıldı.`);}
+      }catch{logEkle("❌ Geçersiz dosya.");}
     };
-    reader.readAsText(file);
-    e.target.value="";
+    reader.readAsText(file);e.target.value="";
   }
 
-  const semboller = Object.values(db.semboller);
-  let liste = semboller.filter(s => {
-    if(donem!=="TUM"&&s.donem&&s.donem!==donem) return false;
-    if(filtre>0&&(s.teknik?.oncelikNo||0)!==filtre) return false;
-    return true;
-  });
-  liste.sort((a,b) => {
-    const at=teknikP(a.teknik),bt=teknikP(b.teknik);
-    const ak=takasP(a.sonTakas),bk=takasP(b.sonTakas);
-    if(siralama==="teknik") return (bt||0)-(at||0);
-    if(siralama==="takas") return (bk||0)-(ak||0);
-    if(siralama==="birlesik") return (birlesikP(bt,bk)||0)-(birlesikP(at,ak)||0);
-    return (a.teknik?.oncelikNo||99)-(b.teknik?.oncelikNo||99);
+  const db=dbler[aktifListe];
+  const listeKfg=LISTELER[aktifListe];
+  const tumSemboller=Object.values(db.semboller);
+
+  // Dönem filtresi
+  const donemFiltreli=tumSemboller.filter(s=>{
+    if(donem==="TUM")return true;
+    return s.donem===donem;
   });
 
-  const ozet = {
-    toplam:semboller.length,
-    p1:semboller.filter(s=>s.teknik?.oncelikNo===1).length,
-    p2:semboller.filter(s=>s.teknik?.oncelikNo===2).length,
-    p3:semboller.filter(s=>s.teknik?.oncelikNo===3).length,
-    takasli:semboller.filter(s=>s.takasGecmis?.length>0).length,
-    teknikOrt:semboller.length?Math.round(semboller.reduce((a,s)=>a+(teknikP(s.teknik)||0),0)/semboller.length):0,
-    takasOrt:(()=>{const t=semboller.filter(s=>s.sonTakas);return t.length?Math.round(t.reduce((a,s)=>a+(takasP(s.sonTakas)||0),0)/t.length):0;})(),
-  };
+  // Satır hazırla
+  let liste=donemFiltreli.map(s=>({...s,...satirHazirla(s,aktifListe)}));
 
-  const th = { padding:"8px 12px",color:C.dim,fontSize:10,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0 };
-  const td = { padding:"9px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap" };
-  const btn = (active, color=C.teal) => ({
+  // TREND görünümünde sadece 2+ takas olanlar
+  const trendGorunum=siralama==="trend";
+  if(trendGorunum){
+    liste=liste.filter(s=>(s._pp||[]).length>=2);
+    liste.sort((a,b)=>(b._tFark||0)-(a._tFark||0));
+  } else {
+    if(siralama==="varsayilan") liste.sort((a,b)=>(a._oncelik||99)-(b._oncelik||99));
+    else if(siralama==="teknik") liste.sort((a,b)=>(b.teknikP||0)-(a.teknikP||0));
+    else if(siralama==="takas") liste.sort((a,b)=>(b.takasP||0)-(a.takasP||0));
+    else if(siralama==="birlesik") liste.sort((a,b)=>(b.birlesik||0)-(a.birlesik||0));
+    else if(siralama==="canli") liste.sort((a,b)=>(b._zaman||0)-(a._zaman||0));
+  }
+
+  const ozet={"5K2A":Object.values(dbler["5K2A"].semboller).length,"5KTSI":Object.values(dbler["5KTSI"].semboller).length,"5KCLAU":Object.values(dbler["5KCLAU"].semboller).length};
+
+  const th={padding:"7px 12px",color:C.dim,fontSize:9,letterSpacing:0.8,borderBottom:`1px solid ${C.border}`,background:C.bg2,whiteSpace:"nowrap",position:"sticky",top:0};
+  const td={padding:"8px 12px",borderBottom:`1px solid ${C.border2}`,whiteSpace:"nowrap"};
+  const btn=(active,color=C.teal)=>({
     background:active?color:"transparent",
     color:active?(color===C.teal||color===C.blue?"#060b18":"#fff"):C.muted,
     border:`1px solid ${active?color:C.border}`,borderRadius:4,
     padding:"4px 12px",fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:active?700:400
   });
+  const flashBorder=flash==="tarama"?C.teal:flash==="takas"?C.yellow:listeKfg.renk;
 
-  const flashBorder = flash==="tarama"?C.teal:flash==="takas"?C.yellow:C.border;
+  const sutunlar=trendGorunum?TREND_SUTUNLAR:listeKfg.sutunlar;
 
-  return (
+  return(
     <div style={{background:C.bg1,minHeight:"100vh",fontFamily:"'Courier New',monospace",fontSize:12,color:C.text,display:"flex",flexDirection:"column",border:`2px solid ${flashBorder}`,transition:"border-color 0.4s"}}>
 
-      {/* ── HEADER ── */}
-      <div style={{background:C.bg2,borderBottom:`1px solid ${C.border}`,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-        <div style={{display:"flex",alignItems:"center",gap:14}}>
-          <span style={{color:C.teal,fontWeight:700,fontSize:14,letterSpacing:1}}>5K+2A TAKİP</span>
-          <span style={{background:"#0a2a1a",color:C.teal,fontSize:9,padding:"2px 7px",borderRadius:2,border:`1px solid ${C.teal}`}}>localStorage</span>
-          <span style={{color:C.dim,fontSize:10}}>{semboller.length} sembol · {ozet.takasli} takas · {db.son||"—"}</span>
+      {/* HEADER */}
+      <div style={{background:C.bg2,borderBottom:`1px solid ${C.border}`,padding:"9px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{color:C.teal,fontWeight:700,fontSize:14,letterSpacing:1}}>5K TAKİP</span>
+          {Object.entries(LISTELER).map(([key,cfg])=>(
+            <button key={key} onClick={()=>{setAktifListe(key);setSiralama("varsayilan");setDonem("TUM");}}
+              style={{background:aktifListe===key?cfg.renk:"transparent",
+                color:aktifListe===key?"#060b18":C.muted,
+                border:`1px solid ${aktifListe===key?cfg.renk:C.border}`,
+                borderRadius:4,padding:"4px 14px",fontSize:11,cursor:"pointer",
+                fontFamily:"inherit",fontWeight:aktifListe===key?700:400}}>
+              {cfg.label}<span style={{marginLeft:4,fontSize:9,opacity:0.8}}>{ozet[key]}</span>
+            </button>
+          ))}
+          <span style={{color:C.dim,fontSize:9,marginLeft:4}}>{db.son||"—"}</span>
         </div>
-        <div style={{display:"flex",gap:6,alignItems:"center"}} ref={ref}>
-          <button onClick={exportData} style={{...btn(false),fontSize:9,padding:"3px 8px",color:C.muted}}>📦 Yedek</button>
+        <div style={{display:"flex",gap:5,alignItems:"center"}} ref={ref}>
+          <button onClick={exportData} style={{...btn(false),fontSize:9,padding:"3px 8px"}}>📦 Yedek</button>
           <label style={{...btn(false),fontSize:9,padding:"3px 8px",cursor:"pointer"}}>
-            📥 Yükle <input type="file" accept=".json" onChange={importData} style={{display:"none"}}/>
+            📥 Yükle<input type="file" accept=".json" onChange={importData} style={{display:"none"}}/>
           </label>
-          <button onClick={()=>setVeriBox(v=>!v)}
-            style={{...btn(veriBox,C.green),fontSize:10}}>VERİ UYGULA</button>
+          <button onClick={()=>setVeriBox(v=>!v)} style={{...btn(veriBox,C.green),fontSize:10}}>VERİ UYGULA</button>
           <div style={{position:"relative"}}>
             <button onClick={()=>setEkleMenu(v=>!v)}
               style={{background:C.orange,color:"#fff",border:"none",borderRadius:4,padding:"5px 14px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
               + EKLE
             </button>
-            {ekleMenu && (
+            {ekleMenu&&(
               <div style={{position:"absolute",top:"calc(100% + 4px)",right:0,background:C.bg2,border:`1px solid ${C.border}`,borderRadius:4,zIndex:100,minWidth:160}}>
-                <div onClick={()=>{setEkleMenu(false);setEkleModal("tarama");setHisse("");}}
-                  style={{padding:"10px 14px",cursor:"pointer",color:C.teal,borderBottom:`1px solid ${C.border}`,fontSize:11}}>Tarama Listesi</div>
+                <div onClick={()=>{setEkleMenu(false);setEkleModal("tarama");}}
+                  style={{padding:"9px 14px",cursor:"pointer",color:C.teal,borderBottom:`1px solid ${C.border}`,fontSize:11}}>Tarama Listesi</div>
                 <div onClick={()=>{setEkleMenu(false);setEkleModal("takas");setHisse("");}}
-                  style={{padding:"10px 14px",cursor:"pointer",color:C.yellow,fontSize:11}}>Takas Verisi</div>
+                  style={{padding:"9px 14px",cursor:"pointer",color:C.yellow,fontSize:11}}>Takas Verisi</div>
               </div>
             )}
           </div>
-          <button onClick={()=>{setPanelAcik(v=>!v);setGorunum("tablo");}} style={btn(panelAcik,C.blue)}>PANEL</button>
-          <button onClick={()=>{setGorunum(v=>v==="ozet"?"tablo":"ozet");setPanelAcik(false);}} style={btn(gorunum==="ozet",C.purple)}>ÖZET</button>
+          <button onClick={()=>setPanelAcik(v=>!v)} style={btn(panelAcik,C.blue)}>PANEL</button>
         </div>
       </div>
 
-      {/* ── VERİ UYGULA KUTUSU ── */}
-      {veriBox && (
-        <div style={{background:C.bg0,borderBottom:`2px solid ${C.green}`,padding:"12px 16px",flexShrink:0}}>
-          <div style={{color:C.green,fontSize:10,fontWeight:700,marginBottom:8}}>VERİ UYGULA — Claude'dan gelen JSON kodu buraya yapıştırın</div>
+      {/* VERİ UYGULA */}
+      {veriBox&&(
+        <div style={{background:C.bg0,borderBottom:`2px solid ${C.green}`,padding:"10px 16px",flexShrink:0}}>
+          <div style={{color:C.green,fontSize:10,fontWeight:700,marginBottom:5}}>
+            VERİ UYGULA — aktif liste: [{listeKfg.label}]
+            <span style={{color:C.dim,fontSize:9,marginLeft:8}}>Farklı liste için JSON'a "liste":"5KTSI" ekleyin</span>
+          </div>
           <div style={{display:"flex",gap:8}}>
-            <textarea
-              value={veriInput}
-              onChange={e=>setVeriInput(e.target.value)}
-              placeholder={'{\n  "tip": "tarama",\n  "donem": "1G",\n  "veri": [...]\n}'}
-              style={{flex:1,background:C.bg1,border:`1px solid ${C.border}`,color:C.text,padding:"8px 10px",borderRadius:4,fontSize:11,fontFamily:"inherit",height:80,resize:"vertical",outline:"none"}}
-            />
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              <button onClick={veriUygula}
-                style={{background:C.green,color:"#fff",border:"none",borderRadius:4,padding:"8px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-                UYGULA
-              </button>
-              <button onClick={()=>{setVeriBox(false);setVeriInput("");}}
-                style={{background:"transparent",color:C.dim,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 16px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>
-                İptal
-              </button>
+            <textarea value={veriInput} onChange={e=>setVeriInput(e.target.value)}
+              placeholder={'{"tip":"tarama","liste":"5K2A","donem":"1G","veri":[...]}'}
+              style={{flex:1,background:C.bg1,border:`1px solid ${C.border}`,color:C.text,padding:"8px 10px",borderRadius:4,fontSize:11,fontFamily:"inherit",height:72,resize:"vertical",outline:"none"}}/>
+            <div style={{display:"flex",flexDirection:"column",gap:5}}>
+              <button onClick={veriUygula} style={{background:C.green,color:"#fff",border:"none",borderRadius:4,padding:"8px 16px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>UYGULA</button>
+              <button onClick={()=>{setVeriBox(false);setVeriInput("");}} style={{background:"transparent",color:C.dim,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 16px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>İptal</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── EKLE MODAL ── */}
-      {ekleModal && (
-        <div style={{background:C.bg0,borderBottom:`1px solid ${C.border}`,padding:"10px 16px",flexShrink:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-            <span style={{color:ekleModal==="tarama"?C.teal:C.yellow,fontWeight:700,fontSize:11}}>
-              {ekleModal==="tarama"?"TARAMA LİSTESİ":"TAKAS VERİSİ"}
-            </span>
-            {ekleModal==="takas" && (
+      {/* EKLE MODAL */}
+      {ekleModal&&(
+        <div style={{background:C.bg0,borderBottom:`1px solid ${C.border}`,padding:"9px 16px",flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            <span style={{color:listeKfg.renk,fontWeight:700,fontSize:11}}>[{listeKfg.label}] {ekleModal==="tarama"?"TARAMA":"TAKAS"}</span>
+            {ekleModal==="takas"&&(
               <input value={hisse} onChange={e=>setHisse(e.target.value.toUpperCase())}
-                placeholder="Hisse kodu (örn: MOGAN)"
-                style={{background:C.bg1,border:`1px solid ${C.border}`,color:C.text,padding:"5px 10px",borderRadius:4,fontSize:11,fontFamily:"inherit",width:160,outline:"none"}}/>
+                placeholder="Hisse kodu"
+                style={{background:C.bg1,border:`1px solid ${C.border}`,color:C.text,padding:"4px 9px",borderRadius:4,fontSize:11,fontFamily:"inherit",width:130,outline:"none"}}/>
             )}
-            <span style={{color:C.dim,fontSize:10}}>Dönem:</span>
-            {["1G","1H","1AY","3AY"].map(d=>(
-              <button key={d} onClick={()=>setDonemEkle(d)} style={btn(donemEkle===d)}>{d}</button>
-            ))}
-            <button onClick={()=>{
-              if(ekleModal==="tarama") window.open(`https://claude.ai/new?q=tarama+veri+${donemEkle}`,"_blank");
-              else if(hisse.trim()) window.open(`https://claude.ai/new?q=takas+veri+${hisse.trim().toUpperCase()}+${donemEkle}`,"_blank");
-              else { logEkle("Hata: Hisse kodu girin."); return; }
-              setEkleModal(null);
-            }} style={{background:ekleModal==="tarama"?C.teal:C.yellow,color:"#060b18",border:"none",borderRadius:4,padding:"5px 14px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-              Claude'a Git ↗
+            <span style={{color:C.dim,fontSize:9}}>Dönem:</span>
+            {["1G","1H","1AY","3AY"].map(d=><button key={d} onClick={()=>setDonemEkle(d)} style={btn(donemEkle===d)}>{d}</button>)}
+            <button onClick={()=>{logEkle(`Claude'a ilet: "${ekleModal==="tarama"?`tarama veri ${aktifListe} ${donemEkle}`:`takas veri ${aktifListe} ${hisse||"SEMBOL"} ${donemEkle}`}"`);setEkleModal(null);}}
+              style={{background:C.teal,color:"#060b18",border:"none",borderRadius:4,padding:"4px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              Claude'a Bildir ↗
             </button>
-            <button onClick={()=>setEkleModal(null)}
-              style={{background:"transparent",color:C.dim,border:"none",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>iptal</button>
+            <button onClick={()=>setEkleModal(null)} style={{background:"transparent",color:C.dim,border:"none",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>iptal</button>
           </div>
-          <div style={{marginTop:5,color:C.dim,fontSize:9}}>
-            Claude sekmesinde ekran görüntüsünü ekleyip gönderin. Claude size JSON kodu verecek — kopyalayıp VERİ UYGULA kutusuna yapıştırın.
-          </div>
+          <div style={{marginTop:3,color:C.dim,fontSize:9}}>Claude konuşmasına ekran görüntüsü ekleyip gönderin → JSON alın → VERİ UYGULA'ya yapıştırın.</div>
         </div>
       )}
 
-      {/* ── PANEL DRAWER ── */}
-      {panelAcik && (
-        <div style={{background:C.bg0,borderBottom:`2px solid ${C.border}`,padding:"12px 16px",flexShrink:0}}>
-          <div style={{color:C.dim,fontSize:9,marginBottom:8,letterSpacing:0.8}}>PANEL — Komut Referansı</div>
+      {/* PANEL DRAWER */}
+      {panelAcik&&(
+        <div style={{background:C.bg0,borderBottom:`2px solid ${C.border}`,padding:"10px 16px",flexShrink:0}}>
+          <div style={{color:C.dim,fontSize:9,marginBottom:6}}>PANEL — JSON Format Referansı</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {PANEL_K.map(({k,ac,r})=>(
-              <div key={k}
-                onClick={()=>{
-                  navigator.clipboard.writeText(k).then(()=>{
-                    setKopyalandi(k);setTimeout(()=>setKopyalandi(null),1500);
-                  });
-                }}
-                style={{background:C.bg2,border:`1px solid ${C.border}`,borderRadius:4,padding:"7px 11px",cursor:"pointer",display:"flex",gap:8,alignItems:"center"}}>
-                <span style={{color:r,fontSize:10,fontWeight:700}}>{kopyalandi===k?"✅ kopyalandı":k}</span>
-                <span style={{color:C.muted,fontSize:9}}>{ac}</span>
+            {[
+              {l:"Tarama 5K2A",r:C.teal,j:'{"tip":"tarama","liste":"5K2A","donem":"1G","veri":[{"sembol":"MOGAN","teknik":{...}}]}'},
+              {l:"Tarama 5KTSI",r:C.blue,j:'{"tip":"tarama","liste":"5KTSI","donem":"1G","veri":[{"sembol":"KORDS","teknik":{...}}]}'},
+              {l:"Tarama 5KCLAU",r:C.purple,j:'{"tip":"tarama","liste":"5KCLAU","donem":"1G","veri":[{"sembol":"HATSN","teknik":{...}}]}'},
+              {l:"Takas",r:C.yellow,j:'{"tip":"takas","liste":"5K2A","sembol":"MOGAN","tarih":"19.08.2026","donem":"1G","veri":{...}}'},
+              {l:"Sıfırla",r:C.red,j:'{"tip":"sifirla","liste":"5K2A","sembol":"MOGAN"}'},
+            ].map(({l,r,j})=>(
+              <div key={l} style={{background:C.bg2,border:`1px solid ${C.border}`,borderRadius:4,padding:"6px 10px",maxWidth:320}}>
+                <div style={{color:r,fontSize:9,fontWeight:700,marginBottom:2}}>{l}</div>
+                <div style={{color:C.dim,fontSize:8}}>{j}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── FİLTRE BARI ── */}
-      {gorunum==="tablo" && (
-        <div style={{background:C.bg0,borderBottom:`1px solid ${C.border}`,padding:"7px 16px",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",flexShrink:0}}>
-          <span style={{color:C.dim,fontSize:9}}>ÖNCELİK</span>
-          {[{v:0,l:"TÜM",c:C.teal},...[1,2,3,4].map(n=>({v:n,l:`P${n}`,c:PCFG[n].bg}))].map(({v,l,c})=>(
-            <button key={v} onClick={()=>setFiltre(v)} style={btn(filtre===v,c)}>{l}</button>
-          ))}
-          <div style={{width:1,height:16,background:C.border}}/>
-          <span style={{color:C.dim,fontSize:9}}>DÖNEM</span>
-          {["1G","1H","1AY","3AY","TUM"].map(d=>(
-            <button key={d} onClick={()=>setDonem(d)} style={btn(donem===d)}>{d}</button>
-          ))}
-          <div style={{width:1,height:16,background:C.border}}/>
-          <span style={{color:C.dim,fontSize:9}}>SIRALA</span>
-          {[{v:"oncelik",l:"ÖNCELİK"},{v:"teknik",l:"TEKNİK"},{v:"takas",l:"TAKAS"},{v:"birlesik",l:"BİRLEŞİK"}].map(({v,l})=>(
-            <button key={v} onClick={()=>setSiralama(v)} style={btn(siralama===v)}>{l}</button>
-          ))}
-          <span style={{marginLeft:"auto",color:C.dim,fontSize:9}}>{liste.length} kayıt</span>
-        </div>
-      )}
+      {/* SIRALAMA + DÖNEM BARI */}
+      <div style={{background:C.bg0,borderBottom:`1px solid ${C.border}`,padding:"6px 16px",display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",flexShrink:0}}>
+        <span style={{color:C.dim,fontSize:9}}>SIRALA</span>
+        {[
+          {v:"varsayilan",l:"VARSAYILAN",c:C.teal},
+          {v:"teknik",l:"TEKNİK",c:C.teal},
+          {v:"takas",l:"TAKAS",c:C.teal},
+          {v:"birlesik",l:"BİRLEŞİK",c:C.teal},
+          {v:"canli",l:"CANLI",c:C.orange},
+          {v:"trend",l:"TREND",c:C.yellow},
+        ].map(({v,l,c})=>(
+          <button key={v} onClick={()=>setSiralama(v)} style={btn(siralama===v,c)}>{l}</button>
+        ))}
+        <div style={{width:1,height:14,background:C.border,margin:"0 4px"}}/>
+        <span style={{color:C.dim,fontSize:9}}>DÖNEM</span>
+        {["1G","1H","1AY","TUM"].map(d=>(
+          <button key={d} onClick={()=>setDonem(d)} style={btn(donem===d)}>{d}</button>
+        ))}
+        <span style={{marginLeft:"auto",color:C.dim,fontSize:9}}>
+          {liste.length} kayıt · {listeKfg.label}
+          {trendGorunum&&<span style={{color:C.yellow,marginLeft:6}}>↕ Takas trend değişimi</span>}
+          {siralama==="canli"&&<span style={{color:C.orange,marginLeft:6}}>● En son güncellenen üstte</span>}
+        </span>
+      </div>
 
-      {/* ── ÖZET ── */}
-      {gorunum==="ozet" && (
-        <div style={{padding:16,display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,flexShrink:0}}>
-          {[
-            {l:"Toplam Sembol",v:ozet.toplam,c:C.teal},
-            {l:"P1 Sinyal",v:ozet.p1,c:C.orange},
-            {l:"P2 Sinyal",v:ozet.p2,c:C.green},
-            {l:"P3 Sinyal",v:ozet.p3,c:C.blue},
-            {l:"Takas Verili",v:ozet.takasli,c:C.yellow},
-            {l:"Ort. Teknik P.",v:ozet.teknikOrt,c:puanRenk(ozet.teknikOrt)},
-            {l:"Ort. Takas P.",v:ozet.takasOrt,c:puanRenk(ozet.takasOrt)},
-          ].map(({l,v,c})=>(
-            <div key={l} style={{background:C.bg2,border:`1px solid ${C.border}`,borderRadius:6,padding:"14px 16px"}}>
-              <div style={{color:C.dim,fontSize:9,marginBottom:6,letterSpacing:0.8}}>{l.toUpperCase()}</div>
-              <div style={{color:c,fontSize:26,fontWeight:700}}>{v}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* TABLO */}
+      <div style={{overflowX:"auto",flex:1}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <thead>
+            <tr>
+              <th style={th}>SEMBOL</th>
+              {trendGorunum&&<th style={th}>DÖNEM</th>}
+              {sutunlar.map(s=><th key={s.key} style={th}>{s.label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {liste.length===0?(
+              <tr><td colSpan={sutunlar.length+2} style={{...td,color:C.dim,textAlign:"center",padding:60}}>
+                {trendGorunum?"Trend verisi yok — en az 2 takas girişi olan semboller görünür":`[${listeKfg.label}] Veri yok — + EKLE ile başlayın`}
+              </td></tr>
+            ):liste.map((s,i)=>{
+              const canliZaman=s._zaman?new Date(s._zaman).toLocaleString("tr-TR"):"—";
+              return(
+                <tr key={s.sembol||i} style={{background:i%2===0?C.bg1:C.bg0}}>
+                  <td style={{...td,color:C.bright,fontWeight:700,fontSize:13}}>
+                    {s.sembol||"?"}
+                    {siralama==="canli"&&<div style={{color:C.dim,fontSize:8}}>{canliZaman}</div>}
+                  </td>
+                  {trendGorunum&&<td style={{...td,color:C.dim,fontSize:10}}>{s.donem||"—"}</td>}
+                  {sutunlar.map(sut=>{
+                    let val=s[sut.key];
+                    if(sut.key==="trendFark"){
+                      const f=s._tFark;
+                      if(f===null||f===undefined)return <td key={sut.key} style={td}><span style={{color:C.dim}}>—</span></td>;
+                      const renk=f>0?C.teal:f<0?C.red:C.muted;
+                      return <td key={sut.key} style={td}><span style={{color:renk,fontWeight:700}}>{f>0?"+":""}{f}</span></td>;
+                    }
+                    return <td key={sut.key} style={td}><Hucre tip={sut.tip} val={val} sutun={sut} s={s}/></td>;
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-      {/* ── ANA TABLO ── */}
-      {gorunum==="tablo" && (
-        <div style={{overflowX:"auto",flex:1}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-            <thead>
-              <tr>
-                {["SEMBOL","ÖNCELİK","TM1","SİS-A","S90","5SON","TEKNİK P.","TAKAS P.","BİRLEŞİK","TAKAS TARİHİ","TREND"].map(h=>(
-                  <th key={h} style={th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {liste.length===0 ? (
-                <tr><td colSpan={11} style={{...td,color:C.dim,textAlign:"center",padding:60,fontSize:13}}>
-                  Veri yok — <span style={{color:C.muted}}>+ EKLE ile başlayın veya VERİ UYGULA ile JSON yapıştırın</span>
-                </td></tr>
-              ) : liste.map((s,i)=>{
-                const tek=s.teknik||{};
-                const tp=teknikP(tek),tkp=takasP(s.sonTakas),bp=birlesikP(tp,tkp);
-                const gecmis=s.takasGecmis||[];
-                const pp=gecmis.map(t=>takasP(t)).filter(x=>x!==null);
-                const tr_=trendHesap(gecmis);
-                const trc={"↑↑":C.teal,"↑":C.blue,"→":C.muted,"↓":C.orange,"↓↓":C.red}[tr_]||C.dim;
-                const pcfg=PCFG[tek.oncelikNo||0];
-                return (
-                  <tr key={s.sembol||i} style={{background:i%2===0?C.bg1:C.bg0}}>
-                    <td style={{...td,color:C.bright,fontWeight:700,fontSize:13}}>{s.sembol||"?"}</td>
-                    <td style={td}>
-                      {pcfg
-                        ?<span style={{background:pcfg.bg,color:pcfg.tc||"#fff",borderRadius:4,padding:"3px 9px",fontSize:11,fontWeight:700}}>{pcfg.l}</span>
-                        :<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={{...td,color:parseInt(tek.tm1)>=6?C.teal:parseInt(tek.tm1)>=4?C.yellow:C.muted,fontWeight:700}}>
-                      {tek.tm1||"—"}
-                    </td>
-                    <td style={td}>
-                      {tek.sisA==1?<span style={{color:C.purple,fontWeight:700}}>A</span>:<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={td}>
-                      {tek.s90==1?<span style={{color:C.teal,fontSize:11,fontWeight:700}}>S90</span>:<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={td}>
-                      {tek.be5son==1
-                        ?<span style={{color:C.blue}}>{parseInt(tek.be5sonGun)>0?`${tek.be5sonGun}g`:"✓"}</span>
-                        :<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={td}>
-                      {tp!==null
-                        ?<span style={{color:puanRenk(tp),fontWeight:700}}>{tp}<span style={{color:C.dim,fontSize:9}}>/100</span></span>
-                        :<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={td}>
-                      {tkp!==null
-                        ?<span style={{color:puanRenk(tkp),fontWeight:700}}>{tkp}<span style={{color:C.dim,fontSize:9}}>/100</span></span>
-                        :<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={td}>
-                      {bp!==null
-                        ?<span style={{color:puanRenk(bp),fontWeight:700}}>{bp}<span style={{color:C.dim,fontSize:9}}>/100</span></span>
-                        :<span style={{color:C.dim}}>—</span>}
-                    </td>
-                    <td style={{...td,color:C.muted,fontSize:10}}>{s.sonTakas?.tarih||"—"}</td>
-                    <td style={td}>
-                      <div style={{display:"flex",alignItems:"center",gap:6}}>
-                        {pp.length>=2 && <Sparkline puanlar={pp}/>}
-                        {tr_?<span style={{color:trc,fontWeight:700,fontSize:14}}>{tr_}</span>:<span style={{color:C.dim}}>—</span>}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* ── LOG ── */}
-      <div style={{background:C.bg0,borderTop:`1px solid ${C.border}`,padding:"4px 16px",maxHeight:60,overflowY:"auto",flexShrink:0}}>
+      {/* LOG */}
+      <div style={{background:C.bg0,borderTop:`1px solid ${C.border}`,padding:"3px 16px",maxHeight:50,overflowY:"auto",flexShrink:0}}>
         {log.map((m,i)=>(
           <div key={i} style={{fontSize:9,color:i===0?C.muted:C.dim,padding:"1px 0",borderBottom:`1px solid ${C.border2}`}}>
-            <span style={{color:C.border,marginRight:6}}>›</span>{m}
+            <span style={{color:C.border,marginRight:5}}>›</span>{m}
           </div>
         ))}
       </div>
-
     </div>
   );
 }
